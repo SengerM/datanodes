@@ -6,7 +6,7 @@ setuptools.setup(
 	author = "Matias Senger",
 	author_email = "m.senger@hotmail.com",
 	description = "Automatic accommodation of data into the file system",
-	# ~ url = "",
+	url = "https://github.com/SengerM/datanodes",
 	packages = setuptools.find_packages(),
 	classifiers = [
 		"Programming Language :: Python :: 3",
