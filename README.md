@@ -2,6 +2,8 @@
 
 A package to help organizing data and results in a directory structure, automating error checking.
 
+**Note** This is an evolution of [the_bureaucrat](https://github.com/SengerM/the_bureaucrat).
+
 # Installation
 
 ```
