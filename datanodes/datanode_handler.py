@@ -41,9 +41,15 @@ class DatanodeHandler:
 			in `path_to_datanode` is of `check_datanode_class` class. If
 			not, a `RuntimeError` is raised.
 		"""
+		path_to_datanode = Path(path_to_datanode) # Cast to a Path object.
+		
+		# If we are given a path to the `datanode.json` file, let's accept it as valid:
+		if path_to_datanode.name == 'datanode.json':
+			path_to_datanode = path_to_datanode.parent
+		
 		if not exists_datanode(path_to_datanode):
 			raise RuntimeError(f'Datanode in {path_to_datanode} does not exist.')
-		self._path_to_the_datanode = Path(path_to_datanode)
+		self._path_to_the_datanode = path_to_datanode
 		
 		with open(self.path_to_datanode_directory/'datanode.json','r') as ifile:
 			self._datanode_metadata = json.load(ifile)
