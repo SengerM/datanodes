@@ -188,7 +188,7 @@ class DatanodeHandler:
 		"""
 		if isinstance(tasks_names, str):
 			tasks_names = [tasks_names]
-		if not isinstance(tasks_names, list) or not all([isinstance(task_name, str) for task_name in tasks_names]):
+		if not isinstance(tasks_names, (list,set)) or not all([isinstance(task_name, str) for task_name in tasks_names]):
 			raise ValueError(f'`tasks_names` must be a list of strings.')
 		tasks_not_run = [task_name for task_name in tasks_names if not self.was_task_run_successfully(task_name)]
 		all_tasks_were_run = len(tasks_not_run) == 0
@@ -196,7 +196,7 @@ class DatanodeHandler:
 			raise RuntimeError(f"Task(s) {tasks_not_run} was(were)n't successfully run beforehand on run {self.pseudopath} located in {self.path_to_datanode_directory}.")
 		return all_tasks_were_run
 	
-	def handle_task(self, task_name:str, check_datanode_class:str=None, keep_old_data:bool=False, allowed_exceptions:set=None):
+	def handle_task(self, task_name:str, check_datanode_class:str=None, check_required_tasks:set=None, keep_old_data:bool=False, allowed_exceptions:set=None):
 		"""This method is used to create a new "subordinate bureaucrat" 
 		of type `TaskBureaucrat` that will manage a task (instead of a
 		run) within the run being managed by the current `RunBureaucrat`.
@@ -230,6 +230,8 @@ class DatanodeHandler:
 		"""
 		if check_datanode_class is not None:
 			self.check_datanode_class(check_datanode_class)
+		if check_required_tasks is not None:
+			self.check_these_tasks_were_run_successfully(check_required_tasks)
 		return DatanodeTaskHandler(
 			datanode_handler = self,
 			task_name = task_name,
