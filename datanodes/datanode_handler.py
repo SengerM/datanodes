@@ -36,6 +36,10 @@ class DatanodeHandler:
 		---------
 		path_to_datanode: Path
 			The path to the datanode.
+		check_datanode_class: str, optional
+			If a string is provided, it will be checked whether the datanode
+			in `path_to_datanode` is of `check_datanode_class` class. If
+			not, a `RuntimeError` is raised.
 		"""
 		if not exists_datanode(path_to_datanode):
 			raise RuntimeError(f'Datanode in {path_to_datanode} does not exist.')
@@ -49,10 +53,13 @@ class DatanodeHandler:
 	
 	@property
 	def path_to_datanode_directory(self)->Path:
+		"""Returns a `Path` object pointing to the datanode directory
+		in the file system."""
 		return self._path_to_the_datanode
 	
 	@property
 	def datanode_name(self)->str:
+		"""Return a string with the name of the datanode."""
 		return self._path_to_the_datanode.parts[-1]
 	
 	@property
@@ -212,6 +219,14 @@ class DatanodeHandler:
 		---------
 		task_name: str
 			The name of the task to handle by the new bureaucrat.
+		check_datanode_class: str, default None
+			Checks the class of the datanode before starting a new task,
+			and raises an error if it does not coincide. If `None` (default)
+			the datanode class checking is omitted.
+		check_required_tasks: set of str, str, default None
+			Checks that the tasks were completed successfully in this 
+			datanode before starting the new task, and raises an error if
+			not. If `None` (default) this checking is omitted.
 		keep_old_data: bool, dafault False
 			If `False` then any data that may exist in the given task e.g.
 			from a previous execution will be deleted. This ensures that
