@@ -55,7 +55,7 @@ class DatanodeHandler:
 			self._datanode_metadata = json.load(ifile)
 		
 		if check_datanode_class is not None:
-			self.check_class(datanode_class)
+			self.check_datanode_class(check_datanode_class)
 	
 	@property
 	def path_to_datanode_directory(self)->Path:
