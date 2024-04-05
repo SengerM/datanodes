@@ -7,6 +7,7 @@ import tempfile
 import traceback
 import shutil
 import json
+from inspect import isclass
 
 def find_ugly_characters_better_to_avoid_in_paths(path:Path):
 	"""Returns a set of characters that are considered as not nice options
@@ -259,6 +260,35 @@ class DatanodeHandler:
 			keep_old_data = keep_old_data,
 			allowed_exceptions = allowed_exceptions,
 		)
+	
+	def as_type(self, convert_to):
+		"""Returns a new `DatanodeHandler` pointing to the same datanode
+		but with a new class.
+		
+		Example
+		-------
+		This method is useful when working with subclasses of `DatanodeHandler`:
+		```
+		class DatanodeHandlerMyDatanode(DatanodeHandler):
+			def __init__(self, path_to_datanode:Path):
+				super().__init__(path_to_datanode, check_datanode_class='MyDatanode') # Here we force this class to operate only on datanodes of class `MyDatanode`.
+		```
+		Now consider the following code:
+		```
+		dn = DatanodeHandler(some_path)
+		my_datanode = dn.parent.as_type(DatanodeHandlerMyDatanode) # Here we convert the parent to our class.
+		```
+		The previous snippet is equivalent to:
+		```
+		dn = DatanodeHandler(some_path)
+		my_datanode = DatanodeHandlerMyDatanode(dn.parent.path_to_datanode_directory) # Here we convert the parent to our class.
+		```
+		"""
+		if not isclass(convert_to):
+			raise ValueError(f'`convert_to` must be a class definition. ')
+		if not issubclass(convert_to, DatanodeHandler):
+			raise ValueError(f'`convert_to` must be a subclass of {DatanodeHandler}. ')
+		return convert_to(self.path_to_datanode_directory)
 	
 class DatanodeTaskHandler:
 	def __init__(self, datanode_handler:DatanodeHandler, task_name:str, keep_old_data:bool=False, allowed_exceptions:set=None):
