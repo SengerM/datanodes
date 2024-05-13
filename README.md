@@ -1,6 +1,6 @@
 # datanodes
 
-A package to help organizing data and results in a directory structure, automating error checking.
+A package to help organizing data in a directory structure, automating error checking, and providing an easy interface within Python.
 
 **Note** This is an evolution of [the_bureaucrat](https://github.com/SengerM/the_bureaucrat).
 
@@ -28,4 +28,7 @@ with dn.handle_task('a_task') as task:
 		print('Whatever...', file=ofile)
 ```
 
-For more examples, see [here](examples).
+- For more examples, see [here](examples). 
+- A "real life example" can be found in the [230614_AIDAinnova_test_beam](https://github.com/SengerM/230614_AIDAinnova_test_beam) repository, specifically in [the commit f33d3ec386c7d517316c5223cdaf8ff75709b3ca](https://github.com/SengerM/230614_AIDAinnova_test_beam/tree/f33d3ec386c7d517316c5223cdaf8ff75709b3ca).
+
+I wish I had developed this earlier in my PhD. Better later than never.
