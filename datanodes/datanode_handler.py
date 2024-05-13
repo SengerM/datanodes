@@ -56,7 +56,7 @@ class DatanodeHandler:
 			self._datanode_metadata = json.load(ifile)
 		
 		if check_datanode_class is not None:
-			self.check_datanode_class(check_datanode_class)
+			self.check_datanode_class(check_datanode_class, raise_error=True)
 	
 	@property
 	def path_to_datanode_directory(self)->Path:
@@ -118,7 +118,7 @@ class DatanodeHandler:
 		"""
 		is_the_same_class = datanode_class == self.datanode_class
 		if raise_error == True and not is_the_same_class:
-			raise RuntimeError(f'Datanode "{self.pseudopath}" is of class "{self.datanode_class}" and not of class "{datanode_class}". ')
+			raise RuntimeError(f'Datanode is of class "{self.datanode_class}" and not of class "{datanode_class}". ')
 		return is_the_same_class
 			
 	def _path_to_directory_of_subdatanodes_of_task(self, task_name:str)->Path:
