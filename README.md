@@ -7,7 +7,7 @@ A package to help organizing data in a directory structure, automating error che
 # Installation
 
 ```
-pip install https://github.com/SengerM/datanodes
+pip install git+https://github.com/SengerM/datanodes
 ```
 
 # Usage
