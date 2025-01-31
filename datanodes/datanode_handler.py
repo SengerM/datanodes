@@ -7,7 +7,7 @@ import tempfile
 import traceback
 import shutil
 import json
-from inspect import isclass
+from inspect import isclass, stack
 
 def find_ugly_characters_better_to_avoid_in_paths(path:Path):
 	"""Returns a set of characters that are considered as not nice options
@@ -209,9 +209,9 @@ class DatanodeHandler:
 		if raise_error == True and not all_tasks_were_run:
 			raise RuntimeError(f"Task(s) {tasks_not_run} was(were)n't successfully run beforehand on run {self.pseudopath} located in {self.path_to_datanode_directory}.")
 		return all_tasks_were_run
-	def handle_task(self, task_name:str, check_datanode_class:str=None, check_required_tasks:set=None, keep_old_data:bool=False, allowed_exceptions:set=None):
-		"""This method is used to create a new "subordinate bureaucrat" 
 
+	def handle_task(self, task_name:str=None, check_datanode_class:str=None, check_required_tasks:set=None, keep_old_data:bool=False, allowed_exceptions:set=None):
+		"""This method is used to create a new "subordinate bureaucrat"
 		of type `TaskBureaucrat` that will manage a task (instead of a
 		run) within the run being managed by the current `RunBureaucrat`.
 
@@ -225,7 +225,8 @@ class DatanodeHandler:
 		Arguments
 		---------
 		task_name: str
-			The name of the task to handle by the new bureaucrat.
+			The name of the task to handle by the new bureaucrat. If `None`,
+			the name of the calling function will automatically be used.
 		check_datanode_class: str, default None
 			Checks the class of the datanode before starting a new task,
 			and raises an error if it does not coincide. If `None` (default)
@@ -256,7 +257,7 @@ class DatanodeHandler:
 			self.check_these_tasks_were_run_successfully(check_required_tasks)
 		return DatanodeTaskHandler(
 			datanode_handler = self,
-			task_name = task_name,
+			task_name = task_name if task_name is not None else stack()[1][3],
 			keep_old_data = keep_old_data,
 			allowed_exceptions = allowed_exceptions,
 		)
