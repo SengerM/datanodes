@@ -43,49 +43,49 @@ class DatanodeHandler:
 			not, a `RuntimeError` is raised.
 		"""
 		path_to_datanode = Path(path_to_datanode) # Cast to a Path object.
-		
+
 		# If we are given a path to the `datanode.json` file, let's accept it as valid:
 		if path_to_datanode.name == 'datanode.json':
 			path_to_datanode = path_to_datanode.parent
-		
+
 		if not exists_datanode(path_to_datanode):
 			raise RuntimeError(f'Datanode in {path_to_datanode} does not exist.')
 		self._path_to_the_datanode = path_to_datanode
-		
+
 		with open(self.path_to_datanode_directory/'datanode.json','r') as ifile:
 			self._datanode_metadata = json.load(ifile)
-		
+
 		if check_datanode_class is not None:
 			self.check_datanode_class(check_datanode_class, raise_error=True)
-	
+
 	@property
 	def path_to_datanode_directory(self)->Path:
 		"""Returns a `Path` object pointing to the datanode directory
 		in the file system."""
 		return self._path_to_the_datanode
-	
+
 	@property
 	def datanode_name(self)->str:
 		"""Return a string with the name of the datanode."""
 		return self._path_to_the_datanode.parts[-1]
-	
+
 	@property
 	def path_to_temporary_directory(self)->Path:
-		"""Returns a `Path` pointing to a temporary directory to store stuff. 
+		"""Returns a `Path` pointing to a temporary directory to store stuff.
 		It will	be lost after Python ends."""
 		if not hasattr(self, '_temporary_directory'):
 			self._temporary_directory = tempfile.TemporaryDirectory()
 		return Path(self._temporary_directory.name)
-	
+
 	@property
 	def parent(self):
-		"""Returns a `DatanodeHandler` pointing to the parent of this 
+		"""Returns a `DatanodeHandler` pointing to the parent of this
 		datanode handler. If it does not exist, returns `None`."""
 		p = self.path_to_datanode_directory.parent.parent.parent
 		if exists_datanode(p) == False:
 			return None
 		return DatanodeHandler(p)
-	
+
 	@property
 	def pseudopath(self)->Path:
 		"""Returns the 'pseudopath' to the datanode, this means the
@@ -98,16 +98,16 @@ class DatanodeHandler:
 			self._pseudopath = '/'.join([b.datanode_name for b in pseudopath])
 			self._pseudopath = Path(self._pseudopath)
 		return self._pseudopath
-	
+
 	@property
 	def datanode_class(self)->str:
 		"""Returns the class of a datanode as a string, or `None` if it
 		has no class assigned."""
 		return self._datanode_metadata.get('datanode_class')
-	
+
 	def check_datanode_class(self, datanode_class:str, raise_error:bool=True)->bool:
 		"""Check the class of the datanode.
-		
+
 		Arguments
 		---------
 		datanode_class: str
@@ -120,14 +120,14 @@ class DatanodeHandler:
 		if raise_error == True and not is_the_same_class:
 			raise RuntimeError(f'Datanode is of class "{self.datanode_class}" and not of class "{datanode_class}". ')
 		return is_the_same_class
-			
+
 	def _path_to_directory_of_subdatanodes_of_task(self, task_name:str)->Path:
 		"""Returns a `Path` pointing to where the subruns should be found."""
 		return self.path_to_datanode_directory/f'{task_name}/subdatanodes'
-		
+
 	def path_to_directory_of_task(self, task_name:str, check_task_completed:bool=True)->Path:
-		"""Returns a path to the directory of a task inside the datanode. 
-		
+		"""Returns a path to the directory of a task inside the datanode.
+
 		Arguments
 		---------
 		task_name: str
@@ -140,12 +140,12 @@ class DatanodeHandler:
 		if check_task_completed == True:
 			self.check_these_tasks_were_run_successfully(task_name)
 		return self.path_to_datanode_directory/task_name
-	
+
 	def list_subdatanodes_of_task(self, task_name:str)->list:
 		"""Returns a list of `DatanodeHandler`s pointing to the subdatanodes
-		of the task. If the task does not exist or was not completed successfully, 
+		of the task. If the task does not exist or was not completed successfully,
 		a `RuntimeError` is raised.
-		
+
 		Arguments
 		---------
 		task_name: str
@@ -156,17 +156,17 @@ class DatanodeHandler:
 			return [DatanodeHandler(p) for p in (self._path_to_directory_of_subdatanodes_of_task(task_name)).iterdir() if p.is_dir()]
 		else:
 			return []
-	
+
 	def was_task_run_successfully(self, task_name:str)->bool:
 		"""If `task_name` was successfully run beforehand returns `True`,
 		otherwise (task does not exist or it does but was not completed)
 		returns `False`.
-		
+
 		Arguments
 		---------
 		task_name: str
 			The name of the task.
-		
+
 		Returns
 		-------
 		was_run: bool
@@ -181,10 +181,10 @@ class DatanodeHandler:
 		except FileNotFoundError as e:
 			pass
 		return was_run
-	
+
 	def check_these_tasks_were_run_successfully(self, tasks_names:list, raise_error:bool=True)->bool:
 		"""Check that certain tasks were run successfully beforehand.
-		
+
 		Arguments
 		---------
 		tasks_names: list of str, or str
@@ -194,7 +194,7 @@ class DatanodeHandler:
 			If `True` then a `RuntimeError` will be raised if any of the
 			tasks in `tasks_names` was not run successfully beforehand.
 			If `False` then no error is raised.
-		
+
 		Returns
 		-------
 		all_tasls_were_run: bool
@@ -209,19 +209,19 @@ class DatanodeHandler:
 		if raise_error == True and not all_tasks_were_run:
 			raise RuntimeError(f"Task(s) {tasks_not_run} was(were)n't successfully run beforehand on run {self.pseudopath} located in {self.path_to_datanode_directory}.")
 		return all_tasks_were_run
-	
 	def handle_task(self, task_name:str, check_datanode_class:str=None, check_required_tasks:set=None, keep_old_data:bool=False, allowed_exceptions:set=None):
 		"""This method is used to create a new "subordinate bureaucrat" 
+
 		of type `TaskBureaucrat` that will manage a task (instead of a
 		run) within the run being managed by the current `RunBureaucrat`.
-		
-		This method was designed for being used together with a `with` 
+
+		This method was designed for being used together with a `with`
 		statement, e.g.
 		```
 		with a_run_bureaucrat.handle_task('some_task') as subordinated_task_bureaucrat:
 			blah blah blah
 		```
-		
+
 		Arguments
 		---------
 		task_name: str
@@ -231,7 +231,7 @@ class DatanodeHandler:
 			and raises an error if it does not coincide. If `None` (default)
 			the datanode class checking is omitted.
 		check_required_tasks: set of str, str, default None
-			Checks that the tasks were completed successfully in this 
+			Checks that the tasks were completed successfully in this
 			datanode before starting the new task, and raises an error if
 			not. If `None` (default) this checking is omitted.
 		keep_old_data: bool, dafault False
@@ -244,7 +244,7 @@ class DatanodeHandler:
 			for example you may want that if you manualy stop the execution
 			that is not an error so you then `allowed_exceptions={KeyboardInterrupt}`
 			would handle that.
-		
+
 		Returns
 		-------
 		new_bureaucrat: TaskBureaucrat
@@ -260,11 +260,11 @@ class DatanodeHandler:
 			keep_old_data = keep_old_data,
 			allowed_exceptions = allowed_exceptions,
 		)
-	
+
 	def as_type(self, convert_to):
 		"""Returns a new `DatanodeHandler` pointing to the same datanode
 		but with a new class.
-		
+
 		Example
 		-------
 		This method is useful when working with subclasses of `DatanodeHandler`:
@@ -289,11 +289,11 @@ class DatanodeHandler:
 		if not issubclass(convert_to, DatanodeHandler):
 			raise ValueError(f'`convert_to` must be a subclass of {DatanodeHandler}. ')
 		return convert_to(self.path_to_datanode_directory)
-	
+
 class DatanodeTaskHandler:
 	def __init__(self, datanode_handler:DatanodeHandler, task_name:str, keep_old_data:bool=False, allowed_exceptions:set=None):
 		"""Create a `DatanodeTaskHandler`.
-		
+
 		Arguments
 		---------
 		datanode_handler: DatanodeHandler
@@ -317,38 +317,38 @@ class DatanodeTaskHandler:
 		self._task_name = task_name
 		self._drop_old_data = keep_old_data == False
 		self._allowed_exceptions = allowed_exceptions if allowed_exceptions is not None else {}
-	
+
 	@property
 	def task_name(self)->str:
 		"""Returns a string with the name of the task."""
 		return self._task_name
-	
+
 	@property
 	def path_to_directory_of_my_task(self)->Path:
 		"""Returns a `Path` object pointing to the directory of the current
 		task."""
 		return self._datanode_handler.path_to_directory_of_task(self.task_name, check_task_completed=False)
-	
+
 	def __enter__(self):
 		if hasattr(self, '_already_did_my_job'):
 			raise RuntimeError(f'A {DatanodeTaskHandler} can only be used once, and this one has already been used! You have to create a new one.')
-		
+
 		if self._drop_old_data == True and self.path_to_directory_of_my_task.is_dir():
 			delete_directory_and_or_file_and_subtree(self.path_to_directory_of_my_task)
-		
+
 		self.path_to_directory_of_my_task.mkdir(exist_ok=True)
-		
+
 		return self
-		
+
 	def __exit__(self, exc_type, exc_value, exc_traceback):
 		self._already_did_my_job = True
-		
+
 		task_status = dict(
 			completed_on = str(datetime.datetime.now()),
 			success = all([exc is None for exc in [exc_type, exc_value, exc_traceback]]) or exc_type in self._allowed_exceptions, # This means there was no error, see https://docs.python.org/3/reference/datamodel.html#object.__exit__
 			task_name = self.task_name,
 		)
-		
+
 		if task_status['success'] == False:
 			task_status |= dict(
 				exc_type = repr(exc_type),
@@ -356,17 +356,17 @@ class DatanodeTaskHandler:
 				exc_traceback = repr(exc_traceback),
 				traceback_str = ''.join(traceback.format_stack()) + f'\n{exc_type.__name__}: {exc_value}',
 			)
-		
+
 		with open(self.path_to_directory_of_my_task/'datanode_task.json', 'w') as ofile:
 			json.dump(
 				task_status,
-				fp = ofile, 
+				fp = ofile,
 				indent = '\t',
 			)
-		
+
 	def create_subdatanode(self, subdatanode_name:str, subdatanode_class:str=None, if_exists:str='raise error')->DatanodeHandler:
 		"""Create a subrun within the current task.
-		
+
 		Arguments
 		---------
 		subdatanode_name: str
@@ -374,7 +374,7 @@ class DatanodeTaskHandler:
 		if_exists: str, default 'raise error'
 			Determines the behavior to follow if this method is called
 			and the datanode already exists.
-		
+
 		Returns
 		-------
 		subdatanode_handler: DatanodeHandler
@@ -392,7 +392,7 @@ class DatanodeTaskHandler:
 
 def create_datanode(path_where_to_create_the_datanode:Path, datanode_name:str, datanode_class:str=None, if_exists:str='raise error')->DatanodeHandler:
 	"""Creates a datanode.
-		
+
 	Arguments
 	---------
 	path_where_to_create_the_datanode: Path
@@ -405,7 +405,7 @@ def create_datanode(path_where_to_create_the_datanode:Path, datanode_name:str, d
 		- `'raise error'`: A `RuntimeError` is raised if the run
 		already exists.
 		- `'override'`: If the run already exists, it will be deleted
-		(together with all its contents) and a new run will be 
+		(together with all its contents) and a new run will be
 		created instead.
 		- `'skip'`: If the run already exists, nothing is done.
 	"""
@@ -424,17 +424,17 @@ def create_datanode(path_where_to_create_the_datanode:Path, datanode_name:str, d
 					datanode_name = datanode_name,
 					datanode_class = datanode_class,
 				),
-				fp = ofile, 
+				fp = ofile,
 				indent = '\t',
 			)
 		return path_to_datanode
-	
+
 	OPTIONS_FOR_IF_EXISTS_ARGUMENT = {'raise error','override','skip'}
 	if if_exists not in OPTIONS_FOR_IF_EXISTS_ARGUMENT:
 		raise ValueError(f'`if_exists` must be one of {OPTIONS_FOR_IF_EXISTS_ARGUMENT}, received {repr(if_exists)}. ')
-	
+
 	path_where_to_create_the_datanode = Path(path_where_to_create_the_datanode)
-	
+
 	if exists_datanode(path_where_to_create_the_datanode/datanode_name):
 		if if_exists == 'raise error':
 			raise RuntimeError(f'Cannot create run {repr(datanode_name)} in {path_where_to_create_the_datanode} because it already exists.')
@@ -444,6 +444,6 @@ def create_datanode(path_where_to_create_the_datanode:Path, datanode_name:str, d
 			return
 		else:
 			raise ValueError(f'Unexpected value received for argument `if_exists`. ')
-	
+
 	datanode_path = _create_datanode(path_where_to_create_the_datanode=path_where_to_create_the_datanode, datanode_name=datanode_name, datanode_class=datanode_class)
 	return DatanodeHandler(datanode_path)
