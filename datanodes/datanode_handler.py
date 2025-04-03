@@ -9,6 +9,9 @@ import shutil
 import json
 from inspect import isclass, stack
 
+class UnsuccessfulTask(RuntimeError):
+    """Raise when a task was not run successfully in the past."""
+
 def find_ugly_characters_better_to_avoid_in_paths(path:Path):
 	"""Returns a set of characters that are considered as not nice options
 	within a Path (e.g. a white space, better to avoid), if any of such
@@ -207,7 +210,7 @@ class DatanodeHandler:
 		tasks_not_run = [task_name for task_name in tasks_names if not self.was_task_run_successfully(task_name)]
 		all_tasks_were_run = len(tasks_not_run) == 0
 		if raise_error == True and not all_tasks_were_run:
-			raise RuntimeError(f"Task(s) {tasks_not_run} was(were)n't successfully run beforehand on run {self.pseudopath} located in {self.path_to_datanode_directory}.")
+			raise UnsuccessfulTask(f"Task(s) {tasks_not_run} was(were)n't successfully run beforehand on run {self.pseudopath} located in {self.path_to_datanode_directory}.")
 		return all_tasks_were_run
 
 	def handle_task(self, task_name:str=None, check_datanode_class:str=None, check_required_tasks:set=None, keep_old_data:bool=False, allowed_exceptions:set=None):
