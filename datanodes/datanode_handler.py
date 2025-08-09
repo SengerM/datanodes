@@ -445,7 +445,7 @@ def create_datanode(path_where_to_create_the_datanode:Path, datanode_name:str, d
 		elif if_exists == 'override':
 			delete_directory_and_or_file_and_subtree(path_where_to_create_the_datanode/datanode_name)
 		elif if_exists == 'skip':
-			return
+			return DatanodeHandler(Path(path_where_to_create_the_datanode)/datanode_name)
 		else:
 			raise ValueError(f'Unexpected value received for argument `if_exists`. ')
 
