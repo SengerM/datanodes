@@ -8,6 +8,9 @@ import traceback
 import shutil
 import json
 from inspect import isclass, stack
+from logging import getLogger
+
+logger = getLogger(__name__)
 
 class UnsuccessfulTask(RuntimeError):
     """Raise when a task was not run successfully in the past."""
@@ -342,6 +345,8 @@ class DatanodeTaskHandler:
 
 		self.path_to_directory_of_my_task.mkdir(exist_ok=True)
 
+		logger.info(f'Running {repr(self.task_name)} in {self._datanode_handler.pseudopath}...')
+
 		return self
 
 	def __exit__(self, exc_type, exc_value, exc_traceback):
@@ -367,6 +372,8 @@ class DatanodeTaskHandler:
 				fp = ofile,
 				indent = '\t',
 			)
+
+		logger.info(f'Task {repr(self.task_name)} in {self._datanode_handler.pseudopath} completed')
 
 	def create_subdatanode(self, subdatanode_name:str, subdatanode_class:str=None, if_exists:str='raise error')->DatanodeHandler:
 		"""Create a subrun within the current task.
